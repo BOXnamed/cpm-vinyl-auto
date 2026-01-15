@@ -62,21 +62,46 @@
   </div>
 
   <script>
-    const car = document.getElementById("car");
-    const vinyl = document.getElementById("vinyl");
-    const btn = document.getElementById("start");
+  const car = document.getElementById("car");
+  const vinyl = document.getElementById("vinyl");
+  const btn = document.getElementById("start");
 
-    function check() {
-      btn.disabled = !(car.files.length && vinyl.files.length);
-    }
+  function check() {
+    btn.disabled = !(car.files.length && vinyl.files.length);
+  }
 
-    car.onchange = check;
-    vinyl.onchange = check;
+  car.onchange = check;
+  vinyl.onchange = check;
 
-    btn.onclick = () => {
-      alert("解析開始！\n（次の段階でAI処理を追加します）");
-    };
-  </script>
+  btn.onclick = () => {
+    document.body.innerHTML = `
+      <h1>完成案</h1>
+      <p>スワイプで切り替え（仮）</p>
+
+      <div class="box">
+        <p>完成案 A（ボディ）</p>
+        <img src="https://via.placeholder.com/300x150?text=BODY" />
+      </div>
+
+      <div class="box">
+        <p>完成案 B（窓）</p>
+        <img src="https://via.placeholder.com/300x150?text=WINDOW" />
+      </div>
+
+      <div class="box">
+        <p>完成案 C（ミックス）</p>
+        <img src="https://via.placeholder.com/300x150?text=MIX" />
+      </div>
+
+      <button onclick="location.reload()">← 戻る</button>
+
+      <div class="vinyl">
+        Vinylちゃん「いい感じだよ！」
+      </div>
+    `;
+  };
+</script>
+
 
 </body>
 </html>
