@@ -75,74 +75,66 @@
 
   btn.onclick = () => {
     document.body.innerHTML = `
-      <h1>完成案を生成中…</h1>
-      <div style="font-size:40px;">🖌️</div>
-      <div class="vinyl">Vinylちゃん「仕上げるよ！」</div>
+      <h1>配置を選択</h1>
+
+      <button onclick="makeImage(0.35, 0.30)">① ドア中央</button><br><br>
+      <button onclick="makeImage(0.30, 0.15)">② フロント寄り</button><br><br>
+      <button onclick="makeImage(0.40, 0.45)">③ リア寄り</button><br><br>
+
+      <img id="carImg" style="display:none">
+      <img id="vinylImg" style="display:none">
+      <canvas id="canvas"></canvas>
+
+      <p id="msg"></p>
+      <button onclick="location.reload()">← 戻る</button>
+
+      <div class="vinyl">
+        Vinylちゃん「ちゃんと保存できる形にしたよ！」
+      </div>
     `;
-    setTimeout(showResult, 1200);
+
+    document.getElementById("carImg").src =
+      URL.createObjectURL(car.files[0]);
+    document.getElementById("vinylImg").src =
+      URL.createObjectURL(vinyl.files[0]);
   };
 
-  function showResult() {
-    const carURL = URL.createObjectURL(car.files[0]);
-    const vinylURL = URL.createObjectURL(vinyl.files[0]);
-
-    function option(top, left, label) {
-      return `
-        <div class="box" style="margin-bottom:20px;">
-          <p>${label}</p>
-          <button onclick="makeImage('${top}','${left}')">
-            この配置を採用
-          </button>
-        </div>
-      `;
-    }
-
-    document.body.innerHTML = `
-      <h1>配置を選択</h1>
-      ${option("35%","30%","① ドア中央")}
-      ${option("30%","15%","② フロント寄り")}
-      ${option("40%","45%","③ リア寄り")}
-      <button onclick="location.reload()">← 戻る</button>
-      <canvas id="canvas" style="display:none;"></canvas>
-    `;
-  }
-
   function makeImage(top, left) {
+    const carImg = document.getElementById("carImg");
+    const vinylImg = document.getElementById("vinylImg");
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
 
-    const carImg = new Image();
-    const vinylImg = new Image();
+    const wait = setInterval(() => {
+      if (carImg.complete && vinylImg.complete) {
+        clearInterval(wait);
 
-    carImg.onload = () => {
-      canvas.width = carImg.width;
-      canvas.height = carImg.height;
-      ctx.drawImage(carImg, 0, 0);
+        canvas.width = carImg.naturalWidth;
+        canvas.height = carImg.naturalHeight;
 
-      vinylImg.onload = () => {
-        const x = parseFloat(left) / 100 * canvas.width;
-        const y = parseFloat(top) / 100 * canvas.height;
+        ctx.drawImage(carImg, 0, 0);
+
+        const x = canvas.width * left;
+        const y = canvas.height * top;
         const w = canvas.width * 0.4;
 
         ctx.globalAlpha = 0.85;
-        ctx.drawImage(vinylImg, x, y, w, w * vinylImg.height / vinylImg.width);
+        ctx.drawImage(
+          vinylImg,
+          x,
+          y,
+          w,
+          w * vinylImg.naturalHeight / vinylImg.naturalWidth
+        );
 
-        const url = canvas.toDataURL("image/png");
-        document.body.innerHTML = `
-          <h1>完成！</h1>
-          <p>長押しで保存できます</p>
-          <img src="${url}" style="width:90%">
-          <button onclick="location.reload()">← 最初に戻る</button>
-          <div class="vinyl">
-            Vinylちゃん「CPMで使ってね！」
-          </div>
-        `;
-      };
-      vinylImg.src = vinylURL;
-    };
-    carImg.src = carURL;
+        document.getElementById("msg").innerHTML =
+          "👇 長押しで保存できます";
+
+      }
+    }, 100);
   }
 </script>
+
 
 
 
