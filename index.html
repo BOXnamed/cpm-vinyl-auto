@@ -76,53 +76,49 @@
   btn.onclick = () => {
     document.body.innerHTML = `
       <h1>解析中…</h1>
-      <p>CPM基準で判定しています</p>
+      <p>CPM定番配置を生成中</p>
       <div style="font-size:40px;">⏳</div>
-      <div class="vinyl">Vinylちゃん「窓もちゃんと見るよ！」</div>
+      <div class="vinyl">Vinylちゃん「3案出すね！」</div>
     `;
-
     setTimeout(showResult, 1500);
   };
 
   function showResult() {
     const carURL = URL.createObjectURL(car.files[0]);
-    const vinylFile = vinyl.files[0];
-    const vinylURL = URL.createObjectURL(vinylFile);
+    const vinylURL = URL.createObjectURL(vinyl.files[0]);
 
-    const isPNG = vinylFile.type === "image/png";
+    function pattern(top, left, label) {
+      return `
+        <div class="box" style="position:relative; margin-bottom:20px;">
+          <p>${label}</p>
+          <img src="${carURL}" style="width:100%">
+          <img src="${vinylURL}" style="
+            position:absolute;
+            top:${top};
+            left:${left};
+            width:40%;
+            opacity:0.85;
+          ">
+        </div>
+      `;
+    }
 
     document.body.innerHTML = `
-      <h1>完成案（CPM判定）</h1>
+      <h1>完成案（3パターン）</h1>
 
-      <h2>🟥 ボディ用</h2>
-      <div class="box">
-        <img src="${carURL}" style="width:100%">
-      </div>
-
-      <h2>🟦 窓用</h2>
-      <div class="box" style="position:relative;">
-        <img src="${carURL}" style="width:100%">
-        ${
-          isPNG
-            ? `<img src="${vinylURL}" style="
-                position:absolute;
-                top:30%;
-                left:30%;
-                width:40%;
-                opacity:0.7;
-              ">`
-            : `<p>このバイナルは窓向きではありません</p>`
-        }
-      </div>
+      ${pattern("35%", "30%", "① ドア中央（王道）")}
+      ${pattern("30%", "15%", "② フロント寄り")}
+      ${pattern("40%", "45%", "③ リア寄り")}
 
       <button onclick="location.reload()">← 戻る</button>
 
       <div class="vinyl">
-        Vinylちゃん「PNGなら窓OKだね！」
+        Vinylちゃん「CPMなら①が一番人気だよ！」
       </div>
     `;
   }
 </script>
+
 
 
 
