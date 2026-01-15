@@ -74,12 +74,11 @@
   vinyl.onchange = check;
 
   btn.onclick = () => {
-    // ローディング
     document.body.innerHTML = `
       <h1>解析中…</h1>
-      <p>車体とバイナルを合成しています</p>
+      <p>CPM基準で判定しています</p>
       <div style="font-size:40px;">⏳</div>
-      <div class="vinyl">Vinylちゃん「ぴったり合わせるよ！」</div>
+      <div class="vinyl">Vinylちゃん「窓もちゃんと見るよ！」</div>
     `;
 
     setTimeout(showResult, 1500);
@@ -87,38 +86,44 @@
 
   function showResult() {
     const carURL = URL.createObjectURL(car.files[0]);
-    const vinylURL = URL.createObjectURL(vinyl.files[0]);
+    const vinylFile = vinyl.files[0];
+    const vinylURL = URL.createObjectURL(vinylFile);
+
+    const isPNG = vinylFile.type === "image/png";
 
     document.body.innerHTML = `
-      <h1>完成案（合成）</h1>
+      <h1>完成案（CPM判定）</h1>
 
-      <div style="
-        position: relative;
-        width: 90%;
-        max-width: 350px;
-        margin: auto;
-      ">
-        <img src="${carURL}" style="width:100%; border-radius:10px;">
-
-        <img src="${vinylURL}" style="
-          position:absolute;
-          top:35%;
-          left:25%;
-          width:50%;
-          opacity:0.85;
-        ">
+      <h2>🟥 ボディ用</h2>
+      <div class="box">
+        <img src="${carURL}" style="width:100%">
       </div>
 
-      <p>※ 仮配置（次で自動最適化）</p>
+      <h2>🟦 窓用</h2>
+      <div class="box" style="position:relative;">
+        <img src="${carURL}" style="width:100%">
+        ${
+          isPNG
+            ? `<img src="${vinylURL}" style="
+                position:absolute;
+                top:30%;
+                left:30%;
+                width:40%;
+                opacity:0.7;
+              ">`
+            : `<p>このバイナルは窓向きではありません</p>`
+        }
+      </div>
 
       <button onclick="location.reload()">← 戻る</button>
 
       <div class="vinyl">
-        Vinylちゃん「CPMならこの位置が定番だね！」
+        Vinylちゃん「PNGなら窓OKだね！」
       </div>
     `;
   }
 </script>
+
 
 
 
