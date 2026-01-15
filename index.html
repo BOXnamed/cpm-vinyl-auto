@@ -2,73 +2,66 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CPM Vinyl AI</title>
-<style>
-body{font-family:sans-serif;text-align:center;margin:0;padding:20px;background:#f7f7f7;}
-h1{margin-top:10px;}
-.box{background:#fff;padding:10px;margin:15px auto;width:90%;max-width:400px;border-radius:10px;}
-button{padding:10px 20px;font-size:16px;margin:10px;}
-canvas{width:90%;max-width:360px;margin-top:10px;}
-img{max-width:100%;border-radius:5px;}
-</style>
+<title>CPM Community</title>
 </head>
 <body>
+<h1>CPM掲示板 / Wiki</h1>
 
-<h1>CPM バイナルAI配置ツール（ダミーAI）</h1>
-
-<div class="box">
-<p>① 車画像</p>
-<input type="file" id="car" accept="image/*">
+<!-- 投稿フォーム -->
+<div>
+  <input type="text" id="title" placeholder="タイトル">
+  <textarea id="content" placeholder="内容"></textarea>
+  <button onclick="postMessage()">投稿</button>
 </div>
 
-<div class="box">
-<p>② バイナル画像</p>
-<input type="file" id="vinyl" accept="image/*">
-</div>
+<!-- 投稿一覧 -->
+<div id="board"></div>
 
-<button id="start" disabled>AI解析開始</button>
-
+<!-- Firebase SDK の初期化はここに貼り付け -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 <script>
-const car=document.getElementById("car");
-const vinyl=document.getElementById("vinyl");
-const btn=document.getElementById("start");
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.appspot.com",
+    messagingSenderId: "SENDER_ID",
+    appId: "APP_ID"
+  };
 
-function check(){btn.disabled=!(car.files.length && vinyl.files.length);}
-car.onchange=check;
-vinyl.onchange=check;
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
-btn.onclick=async()=>{
-  const formData=new FormData();
-  formData.append("car",car.files[0]);
-  formData.append("vinyl",vinyl.files[0]);
-
-  document.body.innerHTML="<h1>🤖 AI解析中…</h1><p>サーバーで分析中</p>";
-
-  try{
-    const res=await fetch("https://cpm-vinyl-ai--ikkisaito0226.replit.app/analyze",{method:"POST",body:formData});
-    const data=await res.json();
-    const first=data.recommended[0];
-    showResult(first.top,first.left);
-  }catch(e){
-    document.body.innerHTML='<h2>❌ AIサーバ接続できませんでした</h2><button onclick="location.reload()">戻る</button>';
+  // 投稿
+  function postMessage() {
+    const title = document.getElementById("title").value;
+    const content = document.getElementById("content").value;
+    if(!title || !content){ alert("入力してください"); return; }
+    
+    db.collection("bulletin").add({
+      title: title,
+      content: content,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      document.getElementById("title").value = "";
+      document.getElementById("content").value = "";
+      alert("投稿完了");
+    });
   }
-}
 
-function showResult(top,left){
-  const carURL=URL.createObjectURL(car.files[0]);
-  const vinylURL=URL.createObjectURL(vinyl.files[0]);
-  document.body.innerHTML=`
-  <h1>AI配置結果</h1>
-  <div style="position:relative;width:90%;max-width:360px;margin:auto;">
-    <img src="${carURL}">
-    <img src="${vinylURL}" style="position:absolute;top:${top*100}%;left:${left*100}%;width:40%;opacity:0.85;">
-  </div>
-  <p>AIが自動でバイナル位置を推定しました</p>
-  <button onclick="location.reload()">もう一度</button>
-  `;
-}
+  // 投稿一覧を表示
+  db.collection("bulletin").orderBy("timestamp", "desc")
+  .onSnapshot((snapshot) => {
+    const container = document.getElementById("board");
+    container.innerHTML = "";
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const div = document.createElement("div");
+      div.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p><hr>`;
+      container.appendChild(div);
+    });
+  });
 </script>
-
 </body>
 </html>
