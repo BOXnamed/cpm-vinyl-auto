@@ -1,147 +1,152 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <title>CPM Vinyl Auto</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #0f1115;
-      color: #fff;
-      padding: 20px;
-      text-align: center;
-    }
-    h1 { margin-bottom: 5px; }
-    p { color: #aaa; }
-    .box {
-      border: 2px dashed #444;
-      padding: 20px;
-      margin: 15px 0;
-    }
-    button {
-      background: #00aaff;
-      border: none;
-      color: #000;
-      padding: 15px 30px;
-      font-size: 16px;
-      border-radius: 8px;
-    }
-    button:disabled {
-      background: #444;
-      color: #777;
-    }
-    .vinyl {
-      position: fixed;
-      right: 10px;
-      bottom: 10px;
-      font-size: 12px;
-      color: #88ccff;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPM Vinyl Auto</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 20px;
+  background: #f7f7f7;
+}
+h1 { margin-top: 10px; }
+.box {
+  background: #fff;
+  padding: 10px;
+  margin: 15px auto;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 10px;
+}
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+}
+#vinylChan {
+  position: fixed;
+  right: 10px;
+  bottom: 10px;
+  text-align: center;
+  font-size: 12px;
+}
+#vinylChan img {
+  width: 80px;
+  border-radius: 10px;
+}
+canvas {
+  width: 90%;
+  max-width: 360px;
+  margin-top: 10px;
+}
+</style>
 </head>
+
 <body>
 
-  <h1>CPM Vinyl Auto</h1>
-  <p>CPM用バイナルを自動配置</p>
+<h1>CPM Vinyl Auto</h1>
+<p>
+Car Parking Multiplayer 専用<br>
+バイナル配置 自動提案ツール
+</p>
 
-  <div class="box">
-    <input type="file" id="car" accept="image/*" />
-    <p>車のスクショを選択</p>
-  </div>
+<div class="box">
+  <p>① 車の画像</p>
+  <input type="file" id="car" accept="image/*">
+</div>
 
-  <div class="box">
-    <input type="file" id="vinyl" accept="image/*" />
-    <p>バイナル画像を選択</p>
-  </div>
+<div class="box">
+  <p>② バイナル画像（PNG推奨）</p>
+  <input type="file" id="vinyl" accept="image/*">
+</div>
 
-  <button id="start" disabled>▶ 解析開始</button>
+<button id="start" disabled>解析開始</button>
 
-  <div class="vinyl">
-    Vinylちゃん「準備できた？」
-  </div>
+<p style="font-size:12px; opacity:0.8;">
+※ CPMは窓にもバイナルが貼れます（本ツールは窓・ボディ対応）
+</p>
 
-  <script>
-  const car = document.getElementById("car");
-  const vinyl = document.getElementById("vinyl");
-  const btn = document.getElementById("start");
+<!-- Vinylちゃん -->
+<div id="vinylChan">
+  <img src="https://via.placeholder.com/120x180?text=Vinyl-chan">
+  <p>Vinylちゃん</p>
+</div>
 
-  function check() {
-    btn.disabled = !(car.files.length && vinyl.files.length);
-  }
+<script>
+const car = document.getElementById("car");
+const vinyl = document.getElementById("vinyl");
+const btn = document.getElementById("start");
 
-  car.onchange = check;
-  vinyl.onchange = check;
+function check() {
+  btn.disabled = !(car.files.length && vinyl.files.length);
+}
+car.onchange = check;
+vinyl.onchange = check;
 
-  btn.onclick = () => {
-    document.body.innerHTML = `
-      <h1>配置を選択</h1>
+btn.onclick = () => {
+  document.body.innerHTML = `
+    <h1>配置を選択</h1>
 
-      <button onclick="makeImage(0.35, 0.30)">① ドア中央</button><br><br>
-      <button onclick="makeImage(0.30, 0.15)">② フロント寄り</button><br><br>
-      <button onclick="makeImage(0.40, 0.45)">③ リア寄り</button><br><br>
+    <button onclick="makeImage(0.35,0.30)">① ドア中央（王道）</button><br><br>
+    <button onclick="makeImage(0.30,0.15)">② フロント寄り</button><br><br>
+    <button onclick="makeImage(0.40,0.45)">③ リア寄り</button><br><br>
 
-      <img id="carImg" style="display:none">
-      <img id="vinylImg" style="display:none">
-      <canvas id="canvas"></canvas>
+    <img id="carImg" style="display:none">
+    <img id="vinylImg" style="display:none">
+    <canvas id="canvas"></canvas>
 
-      <p id="msg"></p>
-      <button onclick="location.reload()">← 戻る</button>
+    <p id="msg"></p>
+    <button onclick="location.reload()">← 最初に戻る</button>
 
-      <div class="vinyl">
-        Vinylちゃん「ちゃんと保存できる形にしたよ！」
-      </div>
-    `;
+    <div id="vinylChan">
+      <img src="https://via.placeholder.com/120x180?text=Vinyl-chan">
+      <p>Vinylちゃん</p>
+    </div>
+  `;
 
-    document.getElementById("carImg").src =
-      URL.createObjectURL(car.files[0]);
-    document.getElementById("vinylImg").src =
-      URL.createObjectURL(vinyl.files[0]);
-  };
+  document.getElementById("carImg").src =
+    URL.createObjectURL(car.files[0]);
+  document.getElementById("vinylImg").src =
+    URL.createObjectURL(vinyl.files[0]);
+};
 
-  function makeImage(top, left) {
-    const carImg = document.getElementById("carImg");
-    const vinylImg = document.getElementById("vinylImg");
-    const canvas = document.getElementById("canvas");
-    const ctx = canvas.getContext("2d");
+function makeImage(top, left) {
+  const carImg = document.getElementById("carImg");
+  const vinylImg = document.getElementById("vinylImg");
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
 
-    const wait = setInterval(() => {
-      if (carImg.complete && vinylImg.complete) {
-        clearInterval(wait);
+  const wait = setInterval(() => {
+    if (carImg.complete && vinylImg.complete) {
+      clearInterval(wait);
 
-        canvas.width = carImg.naturalWidth;
-        canvas.height = carImg.naturalHeight;
+      canvas.width = carImg.naturalWidth;
+      canvas.height = carImg.naturalHeight;
 
-        ctx.drawImage(carImg, 0, 0);
+      ctx.drawImage(carImg, 0, 0);
 
-        const x = canvas.width * left;
-        const y = canvas.height * top;
-        const w = canvas.width * 0.4;
+      const x = canvas.width * left;
+      const y = canvas.height * top;
+      const w = canvas.width * 0.4;
 
-        ctx.globalAlpha = 0.85;
-        ctx.drawImage(
-          vinylImg,
-          x,
-          y,
-          w,
-          w * vinylImg.naturalHeight / vinylImg.naturalWidth
-        );
+      ctx.globalAlpha = 0.85;
+      ctx.drawImage(
+        vinylImg,
+        x,
+        y,
+        w,
+        w * vinylImg.naturalHeight / vinylImg.naturalWidth
+      );
 
-        document.getElementById("msg").innerHTML =
-          "👇 長押しで保存できます";
-
-      }
-    }, 100);
-  }
+      document.getElementById("msg").innerHTML =
+        "👇 完成しました。画像を長押しで保存できます";
+    }
+  }, 100);
+}
 </script>
-
-
-
-
-
-
-
-
 
 </body>
 </html>
