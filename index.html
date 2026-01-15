@@ -50,7 +50,7 @@ canvas {
 <h1>CPM Vinyl Auto</h1>
 <p>
 Car Parking Multiplayer 専用<br>
-バイナル配置 自動提案ツール
+AIバイナル配置 提案ツール
 </p>
 
 <div class="box">
@@ -63,7 +63,7 @@ Car Parking Multiplayer 専用<br>
   <input type="file" id="vinyl" accept="image/*">
 </div>
 
-<button id="start" disabled>解析開始</button>
+<button id="start" disabled>AI解析開始</button>
 
 <p style="font-size:12px; opacity:0.8;">
 ※ CPMは窓にもバイナルが貼れます（本ツールは窓・ボディ対応）
@@ -86,19 +86,57 @@ function check() {
 car.onchange = check;
 vinyl.onchange = check;
 
-btn.onclick = () => {
+btn.onclick = async () => {
+  const formData = new FormData();
+  formData.append("car", car.files[0]);
+  formData.append("vinyl", vinyl.files[0]);
+
   document.body.innerHTML = `
-    <h1>配置を選択</h1>
+    <h1>AI解析中…</h1>
+    <p>サーバーで画像を分析しています</p>
+    <div style="font-size:40px;">🤖</div>
+    <div id="vinylChan">
+      <img src="https://via.placeholder.com/120x180?text=Vinyl-chan">
+      <p>Vinylちゃん</p>
+    </div>
+  `;
 
-    <button onclick="makeImage(0.35,0.30)">① ドア中央（王道）</button><br><br>
-    <button onclick="makeImage(0.30,0.15)">② フロント寄り</button><br><br>
-    <button onclick="makeImage(0.40,0.45)">③ リア寄り</button><br><br>
+  try {
+    const res = await fetch(
+      "https://cpm-vinyl-ai.ikkisaito0226.repl.co/analyze",
+      { method: "POST", body: formData }
+    );
 
-    <img id="carImg" style="display:none">
-    <img id="vinylImg" style="display:none">
-    <canvas id="canvas"></canvas>
+    const data = await res.json();
+    const pos = data.recommended[0];
 
-    <p id="msg"></p>
+    showAIResult(pos.top, pos.left);
+
+  } catch (e) {
+    document.body.innerHTML = "❌ AIサーバーに接続できませんでした";
+  }
+};
+
+function showAIResult(top, left) {
+  const carURL = URL.createObjectURL(car.files[0]);
+  const vinylURL = URL.createObjectURL(vinyl.files[0]);
+
+  document.body.innerHTML = `
+    <h1>AI配置結果</h1>
+
+    <div style="position:relative;width:90%;max-width:360px;margin:auto;">
+      <img src="${carURL}" style="width:100%;">
+      <img src="${vinylURL}" style="
+        position:absolute;
+        top:${top * 100}%;
+        left:${left * 100}%;
+        width:40%;
+        opacity:0.85;
+      ">
+    </div>
+
+    <p>AIが車体形状を解析して配置しました</p>
+
     <button onclick="location.reload()">← 最初に戻る</button>
 
     <div id="vinylChan">
@@ -106,45 +144,6 @@ btn.onclick = () => {
       <p>Vinylちゃん</p>
     </div>
   `;
-
-  document.getElementById("carImg").src =
-    URL.createObjectURL(car.files[0]);
-  document.getElementById("vinylImg").src =
-    URL.createObjectURL(vinyl.files[0]);
-};
-
-function makeImage(top, left) {
-  const carImg = document.getElementById("carImg");
-  const vinylImg = document.getElementById("vinylImg");
-  const canvas = document.getElementById("canvas");
-  const ctx = canvas.getContext("2d");
-
-  const wait = setInterval(() => {
-    if (carImg.complete && vinylImg.complete) {
-      clearInterval(wait);
-
-      canvas.width = carImg.naturalWidth;
-      canvas.height = carImg.naturalHeight;
-
-      ctx.drawImage(carImg, 0, 0);
-
-      const x = canvas.width * left;
-      const y = canvas.height * top;
-      const w = canvas.width * 0.4;
-
-      ctx.globalAlpha = 0.85;
-      ctx.drawImage(
-        vinylImg,
-        x,
-        y,
-        w,
-        w * vinylImg.naturalHeight / vinylImg.naturalWidth
-      );
-
-      document.getElementById("msg").innerHTML =
-        "👇 完成しました。画像を長押しで保存できます";
-    }
-  }, 100);
 }
 </script>
 
