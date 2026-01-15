@@ -75,49 +75,75 @@
 
   btn.onclick = () => {
     document.body.innerHTML = `
-      <h1>解析中…</h1>
-      <p>CPM定番配置を生成中</p>
-      <div style="font-size:40px;">⏳</div>
-      <div class="vinyl">Vinylちゃん「3案出すね！」</div>
+      <h1>完成案を生成中…</h1>
+      <div style="font-size:40px;">🖌️</div>
+      <div class="vinyl">Vinylちゃん「仕上げるよ！」</div>
     `;
-    setTimeout(showResult, 1500);
+    setTimeout(showResult, 1200);
   };
 
   function showResult() {
     const carURL = URL.createObjectURL(car.files[0]);
     const vinylURL = URL.createObjectURL(vinyl.files[0]);
 
-    function pattern(top, left, label) {
+    function option(top, left, label) {
       return `
-        <div class="box" style="position:relative; margin-bottom:20px;">
+        <div class="box" style="margin-bottom:20px;">
           <p>${label}</p>
-          <img src="${carURL}" style="width:100%">
-          <img src="${vinylURL}" style="
-            position:absolute;
-            top:${top};
-            left:${left};
-            width:40%;
-            opacity:0.85;
-          ">
+          <button onclick="makeImage('${top}','${left}')">
+            この配置を採用
+          </button>
         </div>
       `;
     }
 
     document.body.innerHTML = `
-      <h1>完成案（3パターン）</h1>
-
-      ${pattern("35%", "30%", "① ドア中央（王道）")}
-      ${pattern("30%", "15%", "② フロント寄り")}
-      ${pattern("40%", "45%", "③ リア寄り")}
-
+      <h1>配置を選択</h1>
+      ${option("35%","30%","① ドア中央")}
+      ${option("30%","15%","② フロント寄り")}
+      ${option("40%","45%","③ リア寄り")}
       <button onclick="location.reload()">← 戻る</button>
-
-      <div class="vinyl">
-        Vinylちゃん「CPMなら①が一番人気だよ！」
-      </div>
+      <canvas id="canvas" style="display:none;"></canvas>
     `;
   }
+
+  function makeImage(top, left) {
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const carImg = new Image();
+    const vinylImg = new Image();
+
+    carImg.onload = () => {
+      canvas.width = carImg.width;
+      canvas.height = carImg.height;
+      ctx.drawImage(carImg, 0, 0);
+
+      vinylImg.onload = () => {
+        const x = parseFloat(left) / 100 * canvas.width;
+        const y = parseFloat(top) / 100 * canvas.height;
+        const w = canvas.width * 0.4;
+
+        ctx.globalAlpha = 0.85;
+        ctx.drawImage(vinylImg, x, y, w, w * vinylImg.height / vinylImg.width);
+
+        const url = canvas.toDataURL("image/png");
+        document.body.innerHTML = `
+          <h1>完成！</h1>
+          <p>長押しで保存できます</p>
+          <img src="${url}" style="width:90%">
+          <button onclick="location.reload()">← 最初に戻る</button>
+          <div class="vinyl">
+            Vinylちゃん「CPMで使ってね！」
+          </div>
+        `;
+      };
+      vinylImg.src = vinylURL;
+    };
+    carImg.src = carURL;
+  }
 </script>
+
 
 
 
