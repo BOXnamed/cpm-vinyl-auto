@@ -74,50 +74,49 @@
   vinyl.onchange = check;
 
   btn.onclick = () => {
-    // ローディング画面
+    // ローディング
     document.body.innerHTML = `
       <h1>解析中…</h1>
-      <p>車体形状・窓・貼り位置を分析しています</p>
-
+      <p>車体とバイナルを合成しています</p>
       <div style="font-size:40px;">⏳</div>
-
-      <div class="vinyl">
-        Vinylちゃん「ちょっと待ってね〜」
-      </div>
+      <div class="vinyl">Vinylちゃん「ぴったり合わせるよ！」</div>
     `;
 
-    // 2秒後に完成案へ
-    setTimeout(showResult, 2000);
+    setTimeout(showResult, 1500);
   };
 
   function showResult() {
+    const carURL = URL.createObjectURL(car.files[0]);
+    const vinylURL = URL.createObjectURL(vinyl.files[0]);
+
     document.body.innerHTML = `
-      <h1>完成案</h1>
-      <p>スワイプで切り替え（仮）</p>
+      <h1>完成案（合成）</h1>
 
-      <div class="box">
-        <p>完成案 A（ボディ）</p>
-        <img src="https://via.placeholder.com/300x150?text=BODY" />
+      <div style="
+        position: relative;
+        width: 90%;
+        max-width: 350px;
+        margin: auto;
+      ">
+        <img src="${carURL}" style="width:100%; border-radius:10px;">
+
+        <img src="${vinylURL}" style="
+          position:absolute;
+          top:35%;
+          left:25%;
+          width:50%;
+          opacity:0.85;
+        ">
       </div>
 
-      <div class="box">
-        <p>完成案 B（窓）</p>
-        <img src="https://via.placeholder.com/300x150?text=WINDOW" />
-      </div>
-
-      <div class="box">
-        <p>完成案 C（ミックス）</p>
-        <img src="https://via.placeholder.com/300x150?text=MIX" />
-      </div>
+      <p>※ 仮配置（次で自動最適化）</p>
 
       <button onclick="location.reload()">← 戻る</button>
 
       <div class="vinyl">
-        Vinylちゃん「この配置、CPMでも映えるよ！」
+        Vinylちゃん「CPMならこの位置が定番だね！」
       </div>
-    `;
-  }
-</script>
+
 
 
 
