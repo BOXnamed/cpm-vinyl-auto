@@ -74,6 +74,23 @@
   vinyl.onchange = check;
 
   btn.onclick = () => {
+    // ローディング画面
+    document.body.innerHTML = `
+      <h1>解析中…</h1>
+      <p>車体形状・窓・貼り位置を分析しています</p>
+
+      <div style="font-size:40px;">⏳</div>
+
+      <div class="vinyl">
+        Vinylちゃん「ちょっと待ってね〜」
+      </div>
+    `;
+
+    // 2秒後に完成案へ
+    setTimeout(showResult, 2000);
+  };
+
+  function showResult() {
     document.body.innerHTML = `
       <h1>完成案</h1>
       <p>スワイプで切り替え（仮）</p>
@@ -96,11 +113,12 @@
       <button onclick="location.reload()">← 戻る</button>
 
       <div class="vinyl">
-        Vinylちゃん「いい感じだよ！」
+        Vinylちゃん「この配置、CPMでも映えるよ！」
       </div>
     `;
-  };
+  }
 </script>
+
 
 
 </body>
