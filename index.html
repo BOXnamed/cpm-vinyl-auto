@@ -1,95 +1,74 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CPM Vinyl AI</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPM Vinyl AI</title>
+<style>
+body{font-family:sans-serif;text-align:center;margin:0;padding:20px;background:#f7f7f7;}
+h1{margin-top:10px;}
+.box{background:#fff;padding:10px;margin:15px auto;width:90%;max-width:400px;border-radius:10px;}
+button{padding:10px 20px;font-size:16px;margin:10px;}
+canvas{width:90%;max-width:360px;margin-top:10px;}
+img{max-width:100%;border-radius:5px;}
+</style>
 </head>
-<body style="font-family:sans-serif;text-align:center;">
+<body>
 
-  <h1>CPM バイナルAI配置ツール</h1>
+<h1>CPM バイナルAI配置ツール（ダミーAI）</h1>
 
-  <p>① 車の画像を選択</p>
-  <input type="file" id="car" accept="image/*"><br><br>
+<div class="box">
+<p>① 車画像</p>
+<input type="file" id="car" accept="image/*">
+</div>
 
-  <p>② バイナル画像を選択</p>
-  <input type="file" id="vinyl" accept="image/*"><br><br>
+<div class="box">
+<p>② バイナル画像</p>
+<input type="file" id="vinyl" accept="image/*">
+</div>
 
-  <button id="btn" style="font-size:18px;padding:10px 20px;">
-    AIで解析する
-  </button>
+<button id="start" disabled>AI解析開始</button>
 
-  <script>
-    const car = document.getElementById("car");
-    const vinyl = document.getElementById("vinyl");
-    const btn = document.getElementById("btn");
+<script>
+const car=document.getElementById("car");
+const vinyl=document.getElementById("vinyl");
+const btn=document.getElementById("start");
 
-    btn.onclick = async () => {
-      if (!car.files[0] || !vinyl.files[0]) {
-        alert("車画像とバイナル画像を選択してください");
-        return;
-      }
+function check(){btn.disabled=!(car.files.length && vinyl.files.length);}
+car.onchange=check;
+vinyl.onchange=check;
 
-      const formData = new FormData();
-      formData.append("car", car.files[0]);
-      formData.append("vinyl", vinyl.files[0]);
+btn.onclick=async()=>{
+  const formData=new FormData();
+  formData.append("car",car.files[0]);
+  formData.append("vinyl",vinyl.files[0]);
 
-      document.body.innerHTML = `
-        <h1>🤖 AI解析中…</h1>
-        <p>サーバーに送信しています</p>
-      `;
+  document.body.innerHTML="<h1>🤖 AI解析中…</h1><p>サーバーで分析中</p>";
 
-      try {
-        const res = await fetch(
-          "https://cpm-vinyl-ai--ikkisaito0226.replit.app/analyze",
-          {
-            method: "POST",
-            body: formData
-          }
-        );
+  try{
+    const res=await fetch("https://cpm-vinyl-ai--ikkisaito0226.replit.app/analyze",{method:"POST",body:formData});
+    const data=await res.json();
+    const first=data.recommended[0];
+    showResult(first.top,first.left);
+  }catch(e){
+    document.body.innerHTML='<h2>❌ AIサーバ接続できませんでした</h2><button onclick="location.reload()">戻る</button>';
+  }
+}
 
-        const data = await res.json();
-        const pos = data.recommended[0];
-
-        showResult(pos.top, pos.left);
-
-      } catch (e) {
-        document.body.innerHTML = `
-          <h2>❌ AIサーバ接続できませんでした</h2>
-          <button onclick="location.reload()">戻る</button>
-        `;
-      }
-    };
-
-    function showResult(top, left) {
-      const carURL = URL.createObjectURL(car.files[0]);
-      const vinylURL = URL.createObjectURL(vinyl.files[0]);
-
-      document.body.innerHTML = `
-        <h1>AI配置結果</h1>
-
-        <div style="
-          position:relative;
-          width:90%;
-          max-width:360px;
-          margin:auto;
-        ">
-          <img src="${carURL}" style="width:100%;">
-          <img src="${vinylURL}" style="
-            position:absolute;
-            top:${top * 100}%;
-            left:${left * 100}%;
-            width:40%;
-            opacity:0.85;
-          ">
-        </div>
-
-        <p>AIが自動で配置を推定しました</p>
-
-        <button onclick="location.reload()">もう一度</button>
-      `;
-    }
-  </script>
+function showResult(top,left){
+  const carURL=URL.createObjectURL(car.files[0]);
+  const vinylURL=URL.createObjectURL(vinyl.files[0]);
+  document.body.innerHTML=`
+  <h1>AI配置結果</h1>
+  <div style="position:relative;width:90%;max-width:360px;margin:auto;">
+    <img src="${carURL}">
+    <img src="${vinylURL}" style="position:absolute;top:${top*100}%;left:${left*100}%;width:40%;opacity:0.85;">
+  </div>
+  <p>AIが自動でバイナル位置を推定しました</p>
+  <button onclick="location.reload()">もう一度</button>
+  `;
+}
+</script>
 
 </body>
 </html>
