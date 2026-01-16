@@ -2,66 +2,125 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>CPM Community</title>
-</head>
-<body>
-<h1>CPM掲示板 / Wiki</h1>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CPM Vinyl AI</title>
 
-<!-- 投稿フォーム -->
-<div>
-  <input type="text" id="title" placeholder="タイトル">
-  <textarea id="content" placeholder="内容"></textarea>
-  <button onclick="postMessage()">投稿</button>
+<style>
+body {
+  font-family: sans-serif;
+  text-align: center;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 20px;
+}
+h1 { margin-bottom: 10px; }
+.box {
+  background: white;
+  padding: 15px;
+  margin: 10px auto;
+  width: 95%;
+  max-width: 400px;
+  border-radius: 10px;
+}
+button {
+  padding: 12px 20px;
+  font-size: 16px;
+}
+.preview {
+  position: relative;
+  width: 90%;
+  max-width: 360px;
+  margin: 20px auto;
+}
+.preview img {
+  width: 100%;
+  border-radius: 8px;
+}
+.vinyl {
+  position: absolute;
+  width: 40%;
+  opacity: 0.85;
+}
+</style>
+</head>
+
+<body>
+
+<h1>CPM バイナルAI配置</h1>
+
+<div class="box">
+  <p>① 車画像</p>
+  <input type="file" id="car" accept="image/*">
 </div>
 
-<!-- 投稿一覧 -->
-<div id="board"></div>
+<div class="box">
+  <p>② バイナル画像</p>
+  <input type="file" id="vinyl" accept="image/*">
+</div>
 
-<!-- Firebase SDK の初期化はここに貼り付け -->
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<button id="run" disabled>AI解析開始</button>
+
 <script>
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "SENDER_ID",
-    appId: "APP_ID"
-  };
+const carInput = document.getElementById("car");
+const vinylInput = document.getElementById("vinyl");
+const runBtn = document.getElementById("run");
 
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+function checkReady() {
+  runBtn.disabled = !(carInput.files.length && vinylInput.files.length);
+}
+carInput.onchange = checkReady;
+vinylInput.onchange = checkReady;
 
-  // 投稿
-  function postMessage() {
-    const title = document.getElementById("title").value;
-    const content = document.getElementById("content").value;
-    if(!title || !content){ alert("入力してください"); return; }
-    
-    db.collection("bulletin").add({
-      title: title,
-      content: content,
-      timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      document.getElementById("title").value = "";
-      document.getElementById("content").value = "";
-      alert("投稿完了");
-    });
-  }
-
-  // 投稿一覧を表示
-  db.collection("bulletin").orderBy("timestamp", "desc")
-  .onSnapshot((snapshot) => {
-    const container = document.getElementById("board");
-    container.innerHTML = "";
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const div = document.createElement("div");
-      div.innerHTML = `<h3>${data.title}</h3><p>${data.content}</p><hr>`;
-      container.appendChild(div);
-    });
+// 🔽 File → Base64
+function toBase64(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.readAsDataURL(file);
   });
+}
+
+runBtn.onclick = async () => {
+  document.body.innerHTML = "<h2>🤖 AI解析中…</h2>";
+
+  const carBase64 = await toBase64(carInput.files[0]);
+  const vinylBase64 = await toBase64(vinylInput.files[0]);
+
+  // 🔴 ここだけ変更！！
+  const GRADIO_URL = "https://75b35c0c9b40620160.gradio.live/";
+
+  try {
+    const res = await fetch(GRADIO_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        data: [carBase64, vinylBase64]
+      })
+    });
+
+    const json = await res.json();
+    const result = json.data[0].recommended[0];
+
+    showResult(carBase64, vinylBase64, result.top, result.left);
+
+  } catch (e) {
+    document.body.innerHTML = "<h2>❌ AIサーバ接続失敗</h2><button onclick='location.reload()'>戻る</button>";
+  }
+};
+
+function showResult(carImg, vinylImg, top, left) {
+  document.body.innerHTML = `
+    <h1>AI配置結果</h1>
+    <div class="preview">
+      <img src="${carImg}">
+      <img src="${vinylImg}" class="vinyl"
+        style="top:${top*100}%; left:${left*100}%;">
+    </div>
+    <p>AIが最適な位置を推定しました</p>
+    <button onclick="location.reload()">もう一度</button>
+  `;
+}
 </script>
+
 </body>
 </html>
